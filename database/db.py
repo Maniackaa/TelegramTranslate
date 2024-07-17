@@ -1,10 +1,14 @@
 import dataclasses
 import datetime
+import json
 import pickle
 
+from aiogram.types import Message
 from aiogram.utils.media_group import MediaGroupBuilder
 from sqlalchemy import create_engine, ForeignKey, String, DateTime, \
     Integer, select, delete, Text, BLOB, JSON
+
+
 from sqlalchemy.orm import DeclarativeBase, relationship
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
@@ -55,14 +59,19 @@ class PostModel(Base):
     __tablename__ = 'posts'
     id: Mapped[int] = mapped_column(primary_key=True,
                                     autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
+    # user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
     # user: Mapped['User'] = relationship(back_populates='objs', lazy='subquery')
     created: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.datetime.now(tz=settings.tz))
-    text: Mapped[str] = mapped_column(String(4000))
-    photos: Mapped[str] = mapped_column(JSON())
-    target_time: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
+    text: Mapped[str] = mapped_column(String(4000), default='')
+    html: Mapped[str] = mapped_column(String(4000), default='')
+    raw_message: Mapped[json] = mapped_column(JSON(), nullable=True)
+    # msg = Message(**json.loads(request.msg))
+    # msg = Message.model_validate(msg).as_(bot)
+    photos: Mapped[str] = mapped_column(JSON(),nullable=True)
+    target_time: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     posted_time: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+    translates: Mapped[list['Translate']] = relationship(back_populates='post', lazy='select')
 
     def get_media_group(self):
         media_group = MediaGroupBuilder(caption=self.text)
@@ -70,8 +79,40 @@ class PostModel(Base):
             media_group.add_photo(media=photo)
         return media_group.build()
 
+    def validate_message(self, bot):
+        msg = Message(**json.loads(self.raw_message))
+        return Message.model_validate(msg).as_(bot)
+
+    def get_translates(self):
+        _session = Session(expire_on_commit=False)
+        with _session:
+            q = select(Translate).where(Translate.post_id == self.id)
+            result = _session.execute(q).scalars().all()
+            return result
+
+    def get_translate(self, lang_code):
+        _session = Session(expire_on_commit=False)
+        with _session:
+            logger.debug(f'Ищем перевод поста {self.id} lang {lang_code}')
+            q = select(Translate).where(Translate.post_id == self.id, Translate.lang_code == lang_code)
+            result = _session.execute(q).scalar_one_or_none()
+            return result
+
     def __str__(self):
         return f'{self.__class__.__name__}({self.id})'
+
+
+class Translate(Base):
+    __tablename__ = 'translates'
+    id: Mapped[int] = mapped_column(primary_key=True,
+                                    autoincrement=True)
+    post_id: Mapped[int] = mapped_column(ForeignKey('posts.id', ondelete='CASCADE'))
+    post: Mapped['PostModel'] = relationship(back_populates='translates', lazy='subquery')
+    lang_code: Mapped[str] = mapped_column(String(10), nullable=True)
+    channel_id: Mapped[int] = mapped_column(Integer(), nullable=True)
+    text: Mapped[str] = mapped_column(String(4000), nullable=True)
+    html: Mapped[str] = mapped_column(String(4000), nullable=True)
+    raw_message: Mapped[json] = mapped_column(JSON(), nullable=True)
 
 
 if not database_exists(db_url):

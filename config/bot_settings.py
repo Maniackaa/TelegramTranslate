@@ -19,11 +19,9 @@ class Settings(BaseSettings):
     TIMEZONE: str = "Europe/Moscow"
     USE_REDIS: bool = False
     LOG_TO_FILE: bool = False
-    EMAIL_HOST_USER: str
-    EMAIL_HOST_PASSWORD: str
-    SERVER_EMAIL: str
-    EMAIL_PORT: int
-    LANG_CODES: list
+    CHANNEL_CODES: dict
+    BOT_ID: int
+    GROUP_TRANSLATE: int
 
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env")
 

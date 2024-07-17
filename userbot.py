@@ -29,14 +29,14 @@ def get_data_from_info_string(info: str):
 
 
 # Прием оргинального сообщения. От бота в группу
-@client.on_message(filters.chat(chats=[-1001960686782]) & filters.incoming & filters.user(users=[6618975463]))
+@client.on_message(filters.chat(chats=[settings.GROUP_TRANSLATE]) & filters.incoming & filters.user(users=[settings.BOT_ID]))
 async def to_group(client: Client, message: Message):
     logger.debug('Принято сообщение от бота')
     #info:137:ru
     split = message.text.split('\n')
     info_text = split[-1]
     data = get_data_from_info_string(info_text)
-    lang_codes = settings.LANG_CODES
+    lang_codes = settings.CHANNEL_CODES
     for lang_code in lang_codes:
         translated = await client.translate_text(to_language_code=lang_code,
                                                  text=message.text,
@@ -45,7 +45,7 @@ async def to_group(client: Client, message: Message):
         text = '\n'.join(split_translated_text[:-1])
         translated_info = f'\ninfo:{data["index"]}:{lang_code}'
         entities = translated.entities
-        await client.send_message(chat_id=-1001960686782, text=text + translated_info, entities=entities)
+        await client.send_message(chat_id=settings.GROUP_TRANSLATE, text=text + translated_info, entities=entities)
 
 
 @client.on_message()

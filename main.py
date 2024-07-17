@@ -14,7 +14,7 @@ from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 
 from config.bot_settings import logger, settings
 from dialogs.states import StartSG
-from handlers import admin_handlers, translate
+from handlers import admin_handlers, translate, action_handlers
 
 
 async def set_commands(bot: Bot):
@@ -100,6 +100,7 @@ async def main():
     try:
         dp.include_router(translate.router)
         dp.include_router(admin_handlers.router)
+        dp.include_router(action_handlers.router)
         dp.errors.register(on_unknown_intent, ExceptionTypeFilter(UnknownIntent), )
         setup_dialogs(dp)
 

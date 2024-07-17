@@ -14,6 +14,7 @@ from aiogram_dialog.widgets.text import Format, Const
 from config.bot_settings import settings, logger
 
 from dialogs.states import StartSG, AddPostSG, EditTranslateSG
+from services.db_func import get_last_index
 
 router = Router()
 
@@ -28,6 +29,8 @@ async def start_getter(dialog_manager: DialogManager, event_from_user: User, bot
 
 async def press_add(callback: CallbackQuery, button: Button, dialog_manager: DialogManager, *args, **kwargs):
     data = dialog_manager.dialog_data
+    index = get_last_index()
+    data['index'] = index + 1
     await dialog_manager.start(AddPostSG.text, data=data)
 
 start_dialog = Dialog(
@@ -46,8 +49,6 @@ start_dialog = Dialog(
         getter=start_getter,
 
     ),
-
-
 )
 
 

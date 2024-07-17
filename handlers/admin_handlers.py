@@ -11,8 +11,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import (CallbackQuery, ChatInviteLink, ChatMemberUpdated,
                            InlineKeyboardButton, Message, FSInputFile)
 from aiogram_dialog import DialogManager, StartMode, ShowMode
-from pyrogram import Client
-from pyrogram.enums import ParseMode
+
 
 from config.bot_settings import BASE_DIR, settings
 from dialogs.add_post import add_post_dialog
@@ -21,14 +20,8 @@ from dialogs.start import start_dialog
 from dialogs.states import StartSG
 from keyboards.keyboards import custom_kb
 
-
 from config.bot_settings import logger
 from services.db_func import get_or_create_user
-from services.func import get_info_string_from_message, get_data_from_info_string
-
-client = Client(name='bot',
-             api_id=23127120,
-             api_hash='f28980a804ccca610abeca047d419765', parse_mode=ParseMode.HTML)
 
 
 class IsAdmin(BaseFilter):

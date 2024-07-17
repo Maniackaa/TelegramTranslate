@@ -1,8 +1,12 @@
+import json
+
 from aiogram.types import CallbackQuery
 from aiogram_dialog import StartMode, DialogManager
 from aiogram_dialog.widgets.kbd import Button
 
-from dialogs.states import StartSG
+from config.bot_settings import logger
+from dialogs.states import StartSG, EditTranslateSG
+from services.db_func import get_or_create_post
 
 
 async def go_start(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -10,3 +14,22 @@ async def go_start(callback: CallbackQuery, button: Button, dialog_manager: Dial
 
 async def next_window(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await dialog_manager.next()
+
+
+async def get_translate(callback: CallbackQuery, button: Button, dialog_manager: DialogManager, *args, **kwargs):
+    data = dialog_manager.dialog_data
+    index = data.get("index")
+    post = get_or_create_post(index)
+    for translate in post.get_translates():
+        # await bot.forward_messages(chat_id=585896156, from_chat_id=-1001960686782, message_ids=[message_id])
+        raw_message = translate.raw_message
+        load_message = json.loads(raw_message)
+        loaded_text = load_message.get('text')
+        text_without_info = '\n'.join(loaded_text.split('\n')[:-1])
+        await callback.bot.send_message(chat_id=callback.from_user.id, text=text_without_info + f'\n({translate.lang_code})', entities=load_message.get('entities'))
+
+
+async def to_edit_translate(callback: CallbackQuery, button: Button, dialog_manager: DialogManager, *args, **kwargs):
+    data = dialog_manager.dialog_data
+    logger.debug(data)
+    await dialog_manager.start(EditTranslateSG.start, data=data)

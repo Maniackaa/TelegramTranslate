@@ -22,19 +22,23 @@ from config.bot_settings import settings, logger
 from database.db import bd_data
 
 from dialogs.states import StartSG, AddPostSG, EditTranslateSG
+from services.db_func import get_or_create_post
 
 
 async def edit_getter(dialog_manager: DialogManager, event_from_user: User, bot: Bot, event_update: Update, **kwargs):
     data = dialog_manager.dialog_data
-    post = bd_data['11258']
+    logger.debug(data)
+    data.update(**dialog_manager.start_data)
+    logger.debug(data)
+    index = data.get("index")
+    post = get_or_create_post(index)
     logger.debug(post)
-    langs = list(post.keys())
+    langs = settings.CHANNEL_CODES.keys()
     items = []
-    for item in langs:
+    for item in settings.CHANNEL_CODES:
         items.append((item, item))
-    print(items)
     result = {'post': post,
-              'preview': data.get('preview', f'Переведено {len(langs) - 1}/{len(settings.LANG_CODES)}'),
+              'preview': data.get('preview', f'Переведено {len(langs)}/{len(langs)}'),
               "media_count": len(langs),
               'items': items,
               'lang': data.get('lang')
@@ -45,23 +49,28 @@ async def edit_getter(dialog_manager: DialogManager, event_from_user: User, bot:
 async def sel_translate(callback: CallbackQuery, widget: Select,
                          dialog_manager: DialogManager, item_id: str):
     data = dialog_manager.dialog_data
-    post = bd_data['11258']
-    lang_post = post[item_id]
+    index = data.get("index")
+    post = get_or_create_post(index)
+    logger.debug(f'post: {post}, item_id: {item_id}')
+    translated_post = post.get_translate(item_id)
+    logger.debug(f'translated_post: {translated_post}')
     # message_raw = lang_post['message']
     # message = json.loads(message_raw)
-    data.update(preview=lang_post['html'])
+    data.update(preview=translated_post.text)
     data.update(lang=item_id)
 
 
 async def see_post(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     data = dialog_manager.dialog_data
-    post = bd_data['11258']
+    index = data.get("index")
+    post = get_or_create_post(index)
     if data.get('last_msg'):
         msg = data.get('last_msg')
         await callback.bot.delete_message(chat_id=callback.from_user.id, message_id=msg.message_id)
     lang = data['lang']
-    lang_post = post[lang]
-    message_raw = lang_post['message']
+    logger.debug(f'lang: {lang}')
+    translated_post = post.get_translate(lang)
+    message_raw = translated_post.raw_message
     message = json.loads(message_raw)
     last_msg = await callback.bot.send_message(chat_id=callback.from_user.id, text=message['text'], entities=message['entities'])
     data.update(last_msg=last_msg)

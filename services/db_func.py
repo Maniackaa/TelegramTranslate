@@ -1,12 +1,13 @@
 import asyncio
 import datetime
+import json
 import pickle
 from typing import Sequence
 
 from sqlalchemy import select, delete, RowMapping
 
 from config.bot_settings import logger, settings
-from database.db import Session, User
+from database.db import Session, User, PostModel, Translate
 
 
 def check_user(id):
@@ -58,44 +59,53 @@ def get_or_create_user(user) -> User:
     except Exception as err:
         logger.error('Пользователь не создан', exc_info=True)
 
-#
-# def create_obj(user: User, text: str, photos: list, channel: int, target_time: datetime.datetime):
-#     session = Session(expire_on_commit=False)
-#     with session:
-#         new_obj = ObjModel(user=user,
-#                            text=text,
-#                            photos=photos,
-#                            channel=channel,
-#                            target_time=target_time
-#                            )
-#         session.add(new_obj)
-#         session.commit()
-#         return new_obj
-#
-#
-# def get_obj(pk):
-#     session = Session(expire_on_commit=False)
-#     with session:
-#         q = select(ObjModel).where(ObjModel.id == pk)
-#         result = session.execute(q).scalar_one_or_none()
-#         return result
-#
-#
-# def get_objs_to_send() -> Sequence[ObjModel]:
-#     session = Session(expire_on_commit=False)
-#     with session:
-#         now = settings.tz.localize(datetime.datetime.now())
-#         print(now)
-#         q = select(ObjModel).where(ObjModel.target_time <= now, ObjModel.posted_time.is_(None))
-#         result = session.execute(q).scalars().all()
-#         return result
-#
-#
-# async def main():
-#     user = get_user_from_id(1)
-#     x = get_objs_to_send()
-#     print(x)
-#
-# if __name__ == '__main__':
-#     asyncio.run(main())
+
+def get_last_index():
+    session = Session(expire_on_commit=False)
+    with session:
+        index = 0
+        q = select(PostModel.id).order_by(PostModel.id.desc()).limit(1)
+        result = session.execute(q).scalar()
+        print(result)
+        if result:
+            index = result
+        return index
+
+
+def get_or_create_post(pk):
+    session = Session(expire_on_commit=False)
+    with session:
+        q = select(PostModel).where(PostModel.id == int(pk))
+        result = session.execute(q).scalar_one_or_none()
+        if not result:
+            result = PostModel(id=pk)
+            session.add(result)
+            session.commit()
+        return result
+
+
+def get_or_create_translate(post_id, lang_code):
+    session = Session(expire_on_commit=False)
+    with session:
+        q = select(Translate).where(Translate.id == int(post_id), Translate.lang_code == lang_code)
+        result = session.execute(q).scalar_one_or_none()
+        if not result:
+            result = Translate(post_id=post_id, lang_code=lang_code)
+            session.add(result)
+            session.commit()
+        return result
+
+
+async def main():
+    pass
+    # user = get_user_from_id(1)
+    # x = get_or_create_post('1')
+    post = get_or_create_post(42)
+    print(post)
+    translated_post = post.get_translate('en')
+    print(translated_post)
+    print(translated_post.text)
+
+if __name__ == '__main__':
+    asyncio.run(main())
 #

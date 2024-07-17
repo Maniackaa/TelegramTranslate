@@ -4,6 +4,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from database.db import bd_data
+from services.db_func import get_or_create_translate
+from services.func import get_data_from_info_string, get_info_string_from_message
 
 router: Router = Router()
 from config.bot_settings import logger, settings
@@ -25,24 +27,23 @@ class ToTranslate(BaseFilter):
         if message.text:
             result = 'info:' in message.text
             return result
+#
+# def get_data_from_info_string(info: str) -> dict:
+#     # info:137:ru
+#     splitted = info.split(':')
+#     index = splitted[1]
+#     lang_code = splitted[2]
+#     return {
+#         'index': index,
+#         'lang_code': lang_code
+#     }
 
 
-def get_data_from_info_string(info: str) -> dict:
-    # info:137:ru
-    splitted = info.split(':')
-    index = splitted[1]
-    lang_code = splitted[2]
-    return {
-        'index': index,
-        'lang_code': lang_code
-    }
-
-
-def get_info_string_from_message(text: str):
-    split = text.split('\n')
-    info_string = split[-1]
-    if info_string.startswith('info:'):
-        return info_string
+# def get_info_string_from_message(text: str):
+#     split = text.split('\n')
+#     info_string = split[-1]
+#     if info_string.startswith('info:'):
+#         return info_string
 
 # @router.edited_message()
 # async def edit_message(message: Message, state: FSMContext, bot: Bot):
@@ -82,10 +83,9 @@ def get_info_string_from_message(text: str):
 
 
 # Прием переведенных сообщений
-@router.message(ToTranslate(), IsAdmin(), F.chat.id == -1001960686782)
+@router.message(ToTranslate(), IsAdmin(), F.chat.id == settings.GROUP_TRANSLATE)
 async def receive_translated(message: Message, state: FSMContext, bot: Bot):
     logger.info(f'Принят перевод')
-    print(bd_data)
     info_string = get_info_string_from_message(message.text)
     logger.info(f'info_string: {info_string}')
     data = get_data_from_info_string(info_string)
@@ -93,8 +93,13 @@ async def receive_translated(message: Message, state: FSMContext, bot: Bot):
     # msg = await bot.send_message(chat_id=585896156, text=message.text, entities=message.entities)
     lang_code = data['lang_code']
     index = data['index']
-    bd_data[index][lang_code] = {'msg_id': message.message_id, 'message': message.model_dump_json(), 'html': message.html_text}
-    print(bd_data)
+    # bd_data[index][lang_code] = {'msg_id': message.message_id, 'message': message.model_dump_json(), 'html': message.html_text}
+    # print(bd_data)
+    translate = get_or_create_translate(post_id=index, lang_code=lang_code)
+    translate.set('channel_id', settings.CHANNEL_CODES[lang_code])
+    translate.set('text', message.text)
+    translate.set('html', message.html_text)
+    translate.set('raw_message', message.model_dump_json(exclude_none=True))
 
 
 # @router.message()
