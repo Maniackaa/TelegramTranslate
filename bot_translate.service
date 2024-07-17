@@ -1,0 +1,15 @@
+[Unit]
+Description=tatoo5
+After=network.target
+
+[Service]
+EnvironmentFile=
+ExecStart=/root/TelegramTranslate/venv/bin/python3 main.py
+ExecReload=/root/TelegramTranslate/venv/bin/python3 main.py
+WorkingDirectory=/root/TelegramTranslate
+KillMode=process
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
