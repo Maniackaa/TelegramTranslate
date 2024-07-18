@@ -96,6 +96,7 @@ async def receive_translated(message: Message, state: FSMContext, bot: Bot):
     # bd_data[index][lang_code] = {'msg_id': message.message_id, 'message': message.model_dump_json(), 'html': message.html_text}
     # print(bd_data)
     translate = get_or_create_translate(post_id=index, lang_code=lang_code)
+    logger.debug(f'translate: {translate.id}')
     translate.set('channel_id', settings.CHANNEL_CODES[lang_code])
     translate.set('text', message.text)
     translate.set('html', message.html_text)

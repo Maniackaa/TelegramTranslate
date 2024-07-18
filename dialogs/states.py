@@ -16,3 +16,4 @@ class AddPostSG(StatesGroup):
 
 class EditTranslateSG(StatesGroup):
     start = State()
+    edit = State()

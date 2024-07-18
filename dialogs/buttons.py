@@ -1,12 +1,13 @@
 import json
 
+from aiogram.enums import ParseMode
 from aiogram.types import CallbackQuery
 from aiogram_dialog import StartMode, DialogManager
 from aiogram_dialog.widgets.kbd import Button
 
 from config.bot_settings import logger
 from dialogs.states import StartSG, EditTranslateSG
-from services.db_func import get_or_create_post
+from services.db_func import get_or_create_post, get_or_create_translate
 
 
 async def go_start(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -33,3 +34,13 @@ async def to_edit_translate(callback: CallbackQuery, button: Button, dialog_mana
     data = dialog_manager.dialog_data
     logger.debug(data)
     await dialog_manager.start(EditTranslateSG.start, data=data)
+
+
+async def edit_post(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    logger.debug(f'Нажата кнопка {button.text}')
+    data = dialog_manager.dialog_data
+    index = data.get("index")
+    logger.debug(data)
+    translate = get_or_create_translate(post_id=index, lang_code=data.get('lang'))
+    await callback.message.answer(text=translate.html, parse_mode=ParseMode.HTML)
+    await dialog_manager.switch_to(EditTranslateSG.edit)

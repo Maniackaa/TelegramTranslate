@@ -40,11 +40,6 @@ start_dialog = Dialog(
             text=Const('Добавить пост'),
             on_click=press_add,
             id='add_post'),
-        StubScroll(id="pages", pages="media_count"),
-        Group(
-            NumberedPager(scroll="pages", when=F["pages"] > 1),
-            width=5,
-        ),
         state=StartSG.start,
         getter=start_getter,
 

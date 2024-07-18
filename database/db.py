@@ -114,6 +114,10 @@ class Translate(Base):
     html: Mapped[str] = mapped_column(String(4000), nullable=True)
     raw_message: Mapped[json] = mapped_column(JSON(), nullable=True)
 
+    def get_json_message(self):
+        json_msg = json.loads(self.raw_message)
+        return json_msg
+
 
 if not database_exists(db_url):
     create_database(db_url)

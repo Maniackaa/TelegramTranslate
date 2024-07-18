@@ -87,12 +87,13 @@ def get_or_create_post(pk):
 def get_or_create_translate(post_id, lang_code):
     session = Session(expire_on_commit=False)
     with session:
-        q = select(Translate).where(Translate.id == int(post_id), Translate.lang_code == lang_code)
+        q = select(Translate).where(Translate.post_id == int(post_id)).where(Translate.lang_code == lang_code)
         result = session.execute(q).scalar_one_or_none()
         if not result:
-            result = Translate(post_id=post_id, lang_code=lang_code)
+            result = Translate(post_id=int(post_id), lang_code=lang_code)
             session.add(result)
             session.commit()
+        logger.debug(f'get_or_create_translate {post_id} {lang_code}: {result.id}')
         return result
 
 
@@ -105,6 +106,8 @@ async def main():
     translated_post = post.get_translate('en')
     print(translated_post)
     print(translated_post.text)
+    x = get_or_create_translate(65, 'en')
+    print(x.id)
 
 if __name__ == '__main__':
     asyncio.run(main())

@@ -165,9 +165,6 @@ async def on_date_selected(callback: CallbackQuery, widget,
     await dialog_manager.next()
 
 
-
-
-
 add_post_dialog = Dialog(
     Window(
         Format(text='Вставьте текст поста'),

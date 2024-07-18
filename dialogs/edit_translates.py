@@ -20,9 +20,10 @@ from aiogram_dialog.widgets.text import Format, Const
 
 from config.bot_settings import settings, logger
 from database.db import bd_data
+from dialogs.buttons import edit_post
 
 from dialogs.states import StartSG, AddPostSG, EditTranslateSG
-from services.db_func import get_or_create_post
+from services.db_func import get_or_create_post, get_or_create_translate
 
 
 async def edit_getter(dialog_manager: DialogManager, event_from_user: User, bot: Bot, event_update: Update, **kwargs):
@@ -71,9 +72,21 @@ async def see_post(callback: CallbackQuery, button: Button, dialog_manager: Dial
     logger.debug(f'lang: {lang}')
     translated_post = post.get_translate(lang)
     message_raw = translated_post.raw_message
-    message = json.loads(message_raw)
-    last_msg = await callback.bot.send_message(chat_id=callback.from_user.id, text=message['text'], entities=message['entities'])
+    json_msg = json.loads(message_raw)
+    last_msg = await callback.bot.send_message(chat_id=callback.from_user.id, text=json_msg.get('text', 'No text'),
+                                               entities=json_msg.get('entities', []))
     data.update(last_msg=last_msg)
+
+
+async def insert_edited_post(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str, *args, **kwargs) -> None:
+    data = dialog_manager.dialog_data
+    logger.debug(f'Вставлен новый перевод. Index: {data.get("index")} lang: {data.get("lang")}')
+    logger.debug(data)
+    translate = get_or_create_translate(data.get('index'), data.get('lang'))
+    translate.set('text', message.text)
+    translate.set('html', message.html_text)
+    translate.set('raw_message', message.model_dump_json(exclude_none=True))
+
 
 edit_translate_dialog = Dialog(
     Window(
@@ -81,6 +94,11 @@ edit_translate_dialog = Dialog(
         Button(text=Const('Показать перевод'),
                id='see_post',
                on_click=see_post,
+               when='lang'
+               ),
+        Button(text=Const('Изменить перевод'),
+               id='change_post',
+               on_click=edit_post,
                when='lang'
                ),
         Group(
@@ -93,6 +111,16 @@ edit_translate_dialog = Dialog(
         ),
         Cancel(Const('Назад')),
         state=EditTranslateSG.start,
+        getter=edit_getter
+    ),
+    Window(
+        Format(text='Вставьте новый текст'),
+        TextInput(
+            id='edit_translate',
+            on_success=insert_edited_post,
+        ),
+        Cancel(Const('Назад')),
+        state=EditTranslateSG.edit,
         getter=edit_getter
     ),
 )

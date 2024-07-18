@@ -45,6 +45,7 @@ async def to_group(client: Client, message: Message):
         text = '\n'.join(split_translated_text[:-1])
         translated_info = f'\ninfo:{data["index"]}:{lang_code}'
         entities = translated.entities
+        logger.debug(f'Отправляем перевод {lang_code}')
         await client.send_message(chat_id=settings.GROUP_TRANSLATE, text=text + translated_info, entities=entities)
 
 
