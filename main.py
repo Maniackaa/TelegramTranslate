@@ -94,7 +94,7 @@ async def post_sender():
             loaded_text = load_message.get('text')
             entities = load_message.get('entities')
             text_without_info = '\n'.join(loaded_text.split('\n')[:-1])
-            bot = Bot(token=settings.BOT_TOKEN)
+            bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
             await bot.send_media_group(chat_id=settings.ADMIN_IDS[0], media=translate.get_media_group())
         post.set('posted_time', datetime.datetime.now())
         post.set('is_active', 0)

@@ -108,7 +108,8 @@ class Translate(Base):
     raw_message: Mapped[json] = mapped_column(JSON(), nullable=True)
 
     def get_media_group(self):
-        media_group = MediaGroupBuilder(caption=self.html)
+        text_without_info = '\n'.join(self.html.split('\n')[:-1])
+        media_group = MediaGroupBuilder(caption=text_without_info)
         for photo in self.post.photos:
             media_group.add_photo(media=photo)
         return media_group.build()
