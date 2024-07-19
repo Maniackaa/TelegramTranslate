@@ -11,6 +11,7 @@ from aiogram.fsm.storage.redis import DefaultKeyBuilder, RedisStorage
 from aiogram.types import BotCommand, BotCommandScopeDefault, BotCommandScopeChat, ErrorEvent, ReplyKeyboardRemove
 from aiogram_dialog import setup_dialogs, StartMode, ShowMode, DialogManager
 from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from config.bot_settings import logger, settings
 from dialogs.states import StartSG
@@ -80,6 +81,15 @@ async def on_unknown_state(event, dialog_manager: DialogManager):
     )
 
 
+async def post_sender():
+    logger.debug('Запуск рассыльщика')
+
+
+
+def set_scheduled_jobs(scheduler, *args, **kwargs):
+    scheduler.add_job(post_sender, "interval", seconds=60)
+
+
 async def main():
 
     if settings.USE_REDIS:
@@ -109,6 +119,10 @@ async def main():
         await bot.delete_webhook(drop_pending_updates=True)
 
         await bot.send_message(chat_id=settings.ADMIN_IDS[0], text='Бот запущен')
+
+        scheduler = AsyncIOScheduler()
+        set_scheduled_jobs(scheduler)
+        scheduler.start()
 
         # await bot.send_message(chat_id=config.tg_bot.GROUP_ID, text='Бот запущен', reply_markup=begin_kb)
         await dp.start_polling(bot, config=settings)

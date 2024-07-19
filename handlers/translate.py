@@ -85,7 +85,7 @@ class ToTranslate(BaseFilter):
 # Прием переведенных сообщений
 @router.message(ToTranslate(), IsAdmin(), F.chat.id == settings.GROUP_TRANSLATE)
 async def receive_translated(message: Message, state: FSMContext, bot: Bot):
-    logger.info(f'Принят перевод')
+    logger.info(f'Принят перевод: {logger.debug(message)}')
     info_string = get_info_string_from_message(message.text)
     logger.info(f'info_string: {info_string}')
     data = get_data_from_info_string(info_string)
@@ -100,7 +100,7 @@ async def receive_translated(message: Message, state: FSMContext, bot: Bot):
     translate.set('channel_id', settings.CHANNEL_CODES[lang_code])
     translate.set('text', message.text)
     translate.set('html', message.html_text)
-    translate.set('raw_message', message.model_dump_json(exclude_none=True))
+    translate.set('raw_message', message.model_dump_json(exclude_defaults=True, exclude_none=True))
 
 
 # @router.message()

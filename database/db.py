@@ -29,8 +29,6 @@ class Base(DeclarativeBase):
     def set(self, key, value):
         _session = Session(expire_on_commit=False)
         with _session:
-            if isinstance(value, str):
-                value = value[:999]
             setattr(self, key, value)
             _session.add(self)
             _session.commit()
@@ -72,6 +70,7 @@ class PostModel(Base):
     target_time: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     posted_time: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     translates: Mapped[list['Translate']] = relationship(back_populates='post', lazy='select')
+    is_active: Mapped[int] = mapped_column(Integer(), default=0)
 
     def get_media_group(self):
         media_group = MediaGroupBuilder(caption=self.text)
@@ -117,6 +116,9 @@ class Translate(Base):
     def get_json_message(self):
         json_msg = json.loads(self.raw_message)
         return json_msg
+
+    def __str__(self):
+        return f'{self.__class__.__name__}({self.id}. Post {self.post_id} "{self.lang_code}")'
 
 
 if not database_exists(db_url):

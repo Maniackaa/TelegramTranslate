@@ -39,7 +39,7 @@ async def edit_getter(dialog_manager: DialogManager, event_from_user: User, bot:
     for item in settings.CHANNEL_CODES:
         items.append((item, item))
     result = {'post': post,
-              'preview': data.get('preview', f'Переведено {len(langs)}/{len(langs)}'),
+              'preview': data.get('preview', f'Переведено {len(post.get_translates())}/{len(langs)}'),
               "media_count": len(langs),
               'items': items,
               'lang': data.get('lang')
@@ -67,7 +67,10 @@ async def see_post(callback: CallbackQuery, button: Button, dialog_manager: Dial
     post = get_or_create_post(index)
     if data.get('last_msg'):
         msg = data.get('last_msg')
-        await callback.bot.delete_message(chat_id=callback.from_user.id, message_id=msg.message_id)
+        try:
+            await callback.bot.delete_message(chat_id=callback.from_user.id, message_id=msg.message_id)
+        except Exception as err:
+            pass
     lang = data['lang']
     logger.debug(f'lang: {lang}')
     translated_post = post.get_translate(lang)
@@ -85,7 +88,7 @@ async def insert_edited_post(message: Message, widget: ManagedTextInput, dialog_
     translate = get_or_create_translate(data.get('index'), data.get('lang'))
     translate.set('text', message.text)
     translate.set('html', message.html_text)
-    translate.set('raw_message', message.model_dump_json(exclude_none=True))
+    translate.set('raw_message', message.model_dump_json(exclude_defaults=True, exclude_none=True))
 
 
 edit_translate_dialog = Dialog(

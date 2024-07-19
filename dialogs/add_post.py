@@ -20,7 +20,7 @@ from aiogram_dialog.widgets.text import Format, Const
 
 from config.bot_settings import settings, logger
 from database.db import bd_data
-from dialogs.buttons import get_translate, to_edit_translate
+from dialogs.buttons import get_translate, to_edit_translate, save_post
 
 from dialogs.states import StartSG, AddPostSG, EditTranslateSG
 from dialogs.type_factorys import positive_int_check, tel_check, time_check
@@ -59,6 +59,7 @@ async def text_input(message: Message, widget: ManagedTextInput, dialog_manager:
     index = data.get("index")
     post = get_or_create_post(index)
     if field == 'message':
+
         data['entities'] = message.entities
         msg_original = await message.bot.send_message(
             chat_id=settings.GROUP_TRANSLATE,
@@ -66,7 +67,9 @@ async def text_input(message: Message, widget: ManagedTextInput, dialog_manager:
             entities=data.get('entities', []))
         post.set('text', message.text)
         post.set('html', message.html_text)
-        post.set('raw_message', msg_original.model_dump_json(exclude_none=True))
+        raw = msg_original.model_dump_json(exclude_defaults=True, exclude_none=True)
+        post.set('raw_message', raw)
+
     elif field == 'time_select':
         selected_date = data['selected_date']
         time_select = data['time_select']
@@ -236,6 +239,11 @@ add_post_dialog = Dialog(
         Button(text=Const('Редактировать переводы'),
                id='edit_taranslate',
                on_click=to_edit_translate,
+               when='is_admin',
+               ),
+        Button(text=Const('Сохранить'),
+               id='save_post',
+               on_click=save_post,
                when='is_admin',
                ),
         Start(text=Const('Заново'), state=StartSG.start, id='start'),

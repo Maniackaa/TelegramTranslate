@@ -44,3 +44,13 @@ async def edit_post(callback: CallbackQuery, button: Button, dialog_manager: Dia
     translate = get_or_create_translate(post_id=index, lang_code=data.get('lang'))
     await callback.message.answer(text=translate.html, parse_mode=ParseMode.HTML)
     await dialog_manager.switch_to(EditTranslateSG.edit)
+
+
+async def save_post(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    logger.debug(f'Нажата кнопка {save_post}')
+    data = dialog_manager.dialog_data
+    logger.debug(data)
+    photos = data.get('photos', [])
+    photo_ids = [x[0] for x in photos]
+    post = get_or_create_post(data['index'])
+    post.set('photos', photo_ids)

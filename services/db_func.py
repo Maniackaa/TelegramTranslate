@@ -4,10 +4,13 @@ import json
 import pickle
 from typing import Sequence
 
+from aiogram import Bot
+from aiogram.types import Message
 from sqlalchemy import select, delete, RowMapping
 
 from config.bot_settings import logger, settings
 from database.db import Session, User, PostModel, Translate
+from services.func import send_tg_message
 
 
 def check_user(id):
@@ -97,17 +100,50 @@ def get_or_create_translate(post_id, lang_code):
         return result
 
 
+def get_post_to_send():
+    session = Session(expire_on_commit=False)
+    now = settings.tz.localize(datetime.datetime.now())
+    print(now)
+    with session:
+        q = select(PostModel).where(PostModel.target_time <= now)
+        result = session.execute(q).scalars().all()
+        return result
+
+
 async def main():
     pass
     # user = get_user_from_id(1)
     # x = get_or_create_post('1')
-    post = get_or_create_post(42)
+    # post = get_or_create_post(82)
+    # print(post)
+    # translated_post = post.get_translate('en')
+    # for t in post.get_translates():
+    #     raw_message = t.raw_message
+    #     json.loads(raw_message)
+
+    post = get_or_create_post(3)
     print(post)
-    translated_post = post.get_translate('en')
-    print(translated_post)
-    print(translated_post.text)
-    x = get_or_create_translate(65, 'en')
-    print(x.id)
+    print(post.target_time)
+    posts = get_post_to_send()
+    post = posts[-1]
+    for translate in post.get_translates():
+        print()
+        print(translate.id, translate.post.id)
+        raw_message = translate.raw_message
+        print(raw_message)
+        load_message = json.loads(raw_message)
+        print(load_message)
+        loaded_text = load_message.get('text')
+        entities = load_message.get('entities')
+        text_without_info = '\n'.join(loaded_text.split('\n')[:-1])
+        print(text_without_info)
+        print(entities)
+        bot = Bot(token=settings.BOT_TOKEN)
+        await bot.send_message(chat_id=settings.ADMIN_IDS[0], text=text_without_info, entities=load_message.get('entities'))
+        # await send_tg_message(ids_to_send=settings.ADMIN_IDS, text=translate.get_json_message()['text'],
+        #                       entities=translate.get_json_message().get('entities'))
+
+
 
 if __name__ == '__main__':
     asyncio.run(main())

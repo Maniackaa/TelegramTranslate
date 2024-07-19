@@ -55,7 +55,7 @@ async def command_start_process(message: Message, bot: Bot, dialog_manager: Dial
     user = get_or_create_user(message.from_user)
     logger.info('Старт', user=user, channel=message.chat.id)
     # await message.answer('Привет', reply_markup=start_kb)
-    await dialog_manager.start(state=StartSG.start, mode=StartMode.RESET_STACK, show_mode=ShowMode.EDIT)
+    await dialog_manager.start(state=StartSG.start, mode=StartMode.RESET_STACK, show_mode=ShowMode.DELETE_AND_SEND)
 
 
 @router.callback_query(F.data == 'start_test')
