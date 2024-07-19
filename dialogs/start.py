@@ -24,7 +24,8 @@ async def start_getter(dialog_manager: DialogManager, event_from_user: User, bot
     logger.debug('start_getter', dialog_data=data, start_data=dialog_manager.start_data)
     hello_text = f'В этом боте вы сможете '
 
-    return {'username': event_from_user.username, 'hello_text': hello_text, 'data': data, 'media_count': 5}
+    return {'username': event_from_user.username, 'hello_text': hello_text, 'data': data, 'media_count': 5,
+            'is_admin': event_from_user.id in settings.ADMIN_IDS}
 
 
 async def press_add(callback: CallbackQuery, button: Button, dialog_manager: DialogManager, *args, **kwargs):
@@ -39,7 +40,8 @@ start_dialog = Dialog(
         Button(
             text=Const('Добавить пост'),
             on_click=press_add,
-            id='add_post'),
+            id='add_post',
+            when='is_admin'),
         state=StartSG.start,
         getter=start_getter,
 

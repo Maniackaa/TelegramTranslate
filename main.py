@@ -131,7 +131,7 @@ async def main():
         # await bot.get_updates(offset=-1)
         await bot.delete_webhook(drop_pending_updates=True)
 
-        await bot.send_message(chat_id=settings.ADMIN_IDS[0], text='Бот запущен')
+        await bot.send_message(chat_id=settings.ADMIN_IDS[1], text='Бот запущен')
 
         scheduler = AsyncIOScheduler()
         set_scheduled_jobs(scheduler)
