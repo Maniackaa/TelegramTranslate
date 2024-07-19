@@ -1,4 +1,6 @@
 import asyncio
+import datetime
+import json
 import time
 
 from aiogram import Bot, Dispatcher
@@ -16,6 +18,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from config.bot_settings import logger, settings
 from dialogs.states import StartSG
 from handlers import admin_handlers, translate, action_handlers
+from services.db_func import get_posts_to_send
 
 
 async def set_commands(bot: Bot):
@@ -83,15 +86,25 @@ async def on_unknown_state(event, dialog_manager: DialogManager):
 
 async def post_sender():
     logger.debug('Запуск рассыльщика')
-
+    posts = get_posts_to_send()
+    for post in posts:
+        for translate in post.get_translates():
+            raw_message = translate.raw_message
+            load_message = json.loads(raw_message)
+            loaded_text = load_message.get('text')
+            entities = load_message.get('entities')
+            text_without_info = '\n'.join(loaded_text.split('\n')[:-1])
+            bot = Bot(token=settings.BOT_TOKEN)
+            await bot.send_media_group(chat_id=settings.ADMIN_IDS[0], media=translate.get_media_group())
+        post.set('posted_time', datetime.datetime.now())
+        post.set('is_active', 0)
 
 
 def set_scheduled_jobs(scheduler, *args, **kwargs):
-    scheduler.add_job(post_sender, "interval", seconds=60)
+    scheduler.add_job(post_sender, "interval", seconds=10)
 
 
 async def main():
-
     if settings.USE_REDIS:
         storage = RedisStorage.from_url(
             url=f"redis://{settings.REDIS_HOST}",

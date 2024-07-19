@@ -100,12 +100,12 @@ def get_or_create_translate(post_id, lang_code):
         return result
 
 
-def get_post_to_send():
+def get_posts_to_send():
     session = Session(expire_on_commit=False)
     now = settings.tz.localize(datetime.datetime.now())
     print(now)
     with session:
-        q = select(PostModel).where(PostModel.target_time <= now)
+        q = select(PostModel).where().where(PostModel.is_active == 1)
         result = session.execute(q).scalars().all()
         return result
 
@@ -121,10 +121,7 @@ async def main():
     #     raw_message = t.raw_message
     #     json.loads(raw_message)
 
-    post = get_or_create_post(3)
-    print(post)
-    print(post.target_time)
-    posts = get_post_to_send()
+    posts = get_posts_to_send()
     post = posts[-1]
     for translate in post.get_translates():
         print()

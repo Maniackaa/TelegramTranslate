@@ -72,12 +72,6 @@ class PostModel(Base):
     translates: Mapped[list['Translate']] = relationship(back_populates='post', lazy='select')
     is_active: Mapped[int] = mapped_column(Integer(), default=0)
 
-    def get_media_group(self):
-        media_group = MediaGroupBuilder(caption=self.text)
-        for photo in self.photos:
-            media_group.add_photo(media=photo)
-        return media_group.build()
-
     def validate_message(self, bot):
         msg = Message(**json.loads(self.raw_message))
         return Message.model_validate(msg).as_(bot)
@@ -113,6 +107,11 @@ class Translate(Base):
     html: Mapped[str] = mapped_column(String(4000), nullable=True)
     raw_message: Mapped[json] = mapped_column(JSON(), nullable=True)
 
+    def get_media_group(self):
+        media_group = MediaGroupBuilder(caption=self.html)
+        for photo in self.post.photos:
+            media_group.add_photo(media=photo)
+        return media_group.build()
     def get_json_message(self):
         json_msg = json.loads(self.raw_message)
         return json_msg

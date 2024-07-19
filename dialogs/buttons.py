@@ -54,3 +54,4 @@ async def save_post(callback: CallbackQuery, button: Button, dialog_manager: Dia
     photo_ids = [x[0] for x in photos]
     post = get_or_create_post(data['index'])
     post.set('photos', photo_ids)
+    post.set('is_active', 1)
