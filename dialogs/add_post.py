@@ -20,7 +20,7 @@ from aiogram_dialog.widgets.text import Format, Const
 
 from config.bot_settings import settings, logger
 from database.db import bd_data
-from dialogs.buttons import get_translate, to_edit_translate, save_post
+from dialogs.buttons import get_translate, to_edit_translate, save_post, stop_post
 
 from dialogs.states import StartSG, AddPostSG, EditTranslateSG
 from dialogs.type_factorys import positive_int_check, tel_check, time_check
