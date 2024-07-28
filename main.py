@@ -89,21 +89,24 @@ async def post_sender():
     posts = get_posts_to_send()
     for post in posts:
         for translate in post.get_translates():
-            raw_message = translate.raw_message
-            load_message = json.loads(raw_message)
-            loaded_text = load_message.get('text')
-            entities = load_message.get('entities')
-            text_without_info = '\n'.join(loaded_text.split('\n')[:-1])
-            bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-            # await bot.send_media_group(chat_id=settings.ADMIN_IDS[1], media=translate.get_media_group())
-            await bot.send_media_group(chat_id=translate.channel_id, media=translate.get_media_group())
-            await asyncio.sleep(0.2)
+            try:
+                raw_message = translate.raw_message
+                load_message = json.loads(raw_message)
+                loaded_text = load_message.get('text')
+                entities = load_message.get('entities')
+                text_without_info = '\n'.join(loaded_text.split('\n')[:-1])
+                bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+                # await bot.send_media_group(chat_id=settings.ADMIN_IDS[1], media=translate.get_media_group())
+                await bot.send_media_group(chat_id=translate.channel_id, media=translate.get_media_group())
+                await asyncio.sleep(0.2)
+            except Exception as err:
+                logger.error(err)
         post.set('posted_time', datetime.datetime.now())
         post.set('is_active', 0)
 
 
 def set_scheduled_jobs(scheduler, *args, **kwargs):
-    scheduler.add_job(post_sender, "interval", seconds=10)
+    scheduler.add_job(post_sender, "interval", seconds=60)
 
 
 async def main():
