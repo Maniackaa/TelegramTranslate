@@ -95,7 +95,9 @@ async def post_sender():
             entities = load_message.get('entities')
             text_without_info = '\n'.join(loaded_text.split('\n')[:-1])
             bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-            await bot.send_media_group(chat_id=settings.ADMIN_IDS[1], media=translate.get_media_group())
+            # await bot.send_media_group(chat_id=settings.ADMIN_IDS[1], media=translate.get_media_group())
+            await bot.send_media_group(chat_id=translate.channel_id, media=translate.get_media_group())
+            await asyncio.sleep(0.2)
         post.set('posted_time', datetime.datetime.now())
         post.set('is_active', 0)
 
@@ -131,7 +133,7 @@ async def main():
         # await bot.get_updates(offset=-1)
         await bot.delete_webhook(drop_pending_updates=True)
 
-        await bot.send_message(chat_id=settings.ADMIN_IDS[1], text='Бот запущен')
+        await bot.send_message(chat_id=settings.ADMIN_IDS[0], text='Бот запущен')
 
         scheduler = AsyncIOScheduler()
         set_scheduled_jobs(scheduler)

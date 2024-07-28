@@ -105,7 +105,7 @@ def get_posts_to_send():
     now = settings.tz.localize(datetime.datetime.now())
     print(now)
     with session:
-        q = select(PostModel).where().where(PostModel.is_active == 1)
+        q = select(PostModel).where(PostModel.posted_time == None).where(PostModel.is_active == 1).where(PostModel.target_time <= now)
         result = session.execute(q).scalars().all()
         return result
 
@@ -122,23 +122,24 @@ async def main():
     #     json.loads(raw_message)
 
     posts = get_posts_to_send()
-    post = posts[-1]
-    for translate in post.get_translates():
-        print()
-        print(translate.id, translate.post.id)
-        raw_message = translate.raw_message
-        print(raw_message)
-        load_message = json.loads(raw_message)
-        print(load_message)
-        loaded_text = load_message.get('text')
-        entities = load_message.get('entities')
-        text_without_info = '\n'.join(loaded_text.split('\n')[:-1])
-        print(text_without_info)
-        print(entities)
-        bot = Bot(token=settings.BOT_TOKEN)
-        await bot.send_message(chat_id=settings.ADMIN_IDS[0], text=text_without_info, entities=load_message.get('entities'))
-        # await send_tg_message(ids_to_send=settings.ADMIN_IDS, text=translate.get_json_message()['text'],
-        #                       entities=translate.get_json_message().get('entities'))
+    print(posts)
+    # post = posts[-1]
+    # for translate in post.get_translates():
+    #     print()
+    #     print(translate.id, translate.post.id)
+    #     raw_message = translate.raw_message
+    #     print(raw_message)
+    #     load_message = json.loads(raw_message)
+    #     print(load_message)
+    #     loaded_text = load_message.get('text')
+    #     entities = load_message.get('entities')
+    #     text_without_info = '\n'.join(loaded_text.split('\n')[:-1])
+    #     print(text_without_info)
+    #     print(entities)
+    #     bot = Bot(token=settings.BOT_TOKEN)
+    #     await bot.send_message(chat_id=settings.ADMIN_IDS[0], text=text_without_info, entities=load_message.get('entities'))
+    #     # await send_tg_message(ids_to_send=settings.ADMIN_IDS, text=translate.get_json_message()['text'],
+    #     #                       entities=translate.get_json_message().get('entities'))
 
 
 

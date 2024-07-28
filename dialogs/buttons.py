@@ -47,7 +47,7 @@ async def edit_post(callback: CallbackQuery, button: Button, dialog_manager: Dia
 
 
 async def save_post(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    logger.debug(f'Нажата кнопка {save_post}')
+    logger.debug(f'Нажата кнопка save_post')
     data = dialog_manager.dialog_data
     logger.debug(data)
     photos = data.get('photos', [])
@@ -55,3 +55,13 @@ async def save_post(callback: CallbackQuery, button: Button, dialog_manager: Dia
     post = get_or_create_post(data['index'])
     post.set('photos', photo_ids)
     post.set('is_active', 1)
+    await callback.answer('Рассылка Включена')
+
+
+async def stop_post(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    logger.debug(f'Нажата кнопка stop_post')
+    data = dialog_manager.dialog_data
+    logger.debug(data)
+    post = get_or_create_post(data['index'])
+    post.set('is_active', 0)
+    await callback.answer('Рассылка Отключена')
