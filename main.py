@@ -98,7 +98,7 @@ async def post_sender():
                 bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
                 # await bot.send_media_group(chat_id=settings.ADMIN_IDS[1], media=translate.get_media_group())
                 await bot.send_media_group(chat_id=translate.channel_id, media=translate.get_media_group())
-                await asyncio.sleep(0.2)
+                await asyncio.sleep(1)
             except Exception as err:
                 logger.error(err)
         post.set('posted_time', datetime.datetime.now())

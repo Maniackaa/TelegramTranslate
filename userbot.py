@@ -1,3 +1,4 @@
+import asyncio
 import pickle
 import time
 from pathlib import Path
@@ -47,6 +48,7 @@ async def to_group(client: Client, message: Message):
         entities = translated.entities
         logger.debug(f'Отправляем перевод {lang_code}')
         await client.send_message(chat_id=settings.GROUP_TRANSLATE, text=text + translated_info, entities=entities)
+        await asyncio.sleep(3)
 
 
 @client.on_message()
