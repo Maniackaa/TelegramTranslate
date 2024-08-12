@@ -109,10 +109,14 @@ class Translate(Base):
 
     def get_media_group(self):
         text_without_info = '\n'.join(self.html.split('\n')[:-1])
-        media_group = MediaGroupBuilder(caption=text_without_info)
+        if len(text_without_info) < 1000:
+            media_group = MediaGroupBuilder(caption=text_without_info)
+        else:
+            media_group = MediaGroupBuilder()
         for photo in self.post.photos:
             media_group.add_photo(media=photo)
         return media_group.build()
+
     def get_json_message(self):
         json_msg = json.loads(self.raw_message)
         return json_msg

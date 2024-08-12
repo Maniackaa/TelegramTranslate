@@ -65,3 +65,15 @@ async def stop_post(callback: CallbackQuery, button: Button, dialog_manager: Dia
     post = get_or_create_post(data['index'])
     post.set('is_active', 0)
     await callback.answer('Рассылка Отключена')
+
+
+async def send_ready_post(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    logger.debug(f'Нажата send_ready_post')
+    data = dialog_manager.dialog_data
+    post = get_or_create_post(data['index'])
+    print(post)
+    translate = post.get_translate('ru')
+    print(translate)
+    if len(translate.html) >= 1000:
+        await callback.bot.send_message(chat_id=callback.from_user.id, text=translate.html)
+    await callback.bot.send_media_group(chat_id=callback.from_user.id, media=translate.get_media_group())

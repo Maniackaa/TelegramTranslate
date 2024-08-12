@@ -20,7 +20,7 @@ from aiogram_dialog.widgets.text import Format, Const
 
 from config.bot_settings import settings, logger
 from database.db import bd_data
-from dialogs.buttons import get_translate, to_edit_translate, save_post, stop_post
+from dialogs.buttons import get_translate, to_edit_translate, save_post, stop_post, send_ready_post
 
 from dialogs.states import StartSG, AddPostSG, EditTranslateSG
 from dialogs.type_factorys import positive_int_check, tel_check, time_check
@@ -136,7 +136,7 @@ async def get_photos(dialog_manager: DialogManager, event_from_user, **kwargs):
         "media_count": len(photos),
         "media_number": media_number + 1,
         "media": media,
-        "text": data['message'],
+        "text": data['message'][:999],
         "is_admin": is_admin
     }
 
@@ -236,6 +236,10 @@ add_post_dialog = Dialog(
         Button(text=Const('Отменить рассылку'),
                id='stop_post',
                on_click=stop_post,
+               ),
+        Button(text=Const('Прислать готовый пост'),
+               id='send_ready_post',
+               on_click=send_ready_post,
                ),
         Start(text=Const('Заново'), state=StartSG.start, id='start'),
         state=AddPostSG.confirm,
