@@ -100,12 +100,14 @@ def get_or_create_translate(post_id, lang_code):
         return result
 
 
-def get_posts_to_send():
+def get_posts_to_send(send_type='group'):
+    #  Посты в группу
     session = Session(expire_on_commit=False)
     now = settings.tz.localize(datetime.datetime.now())
-    print(now)
     with session:
-        q = select(PostModel).where(PostModel.posted_time == None).where(PostModel.is_active == 1).where(PostModel.target_time <= now)
+        q = select(PostModel).where(PostModel.posted_time == None).where(
+            PostModel.is_active == 1).where(
+            PostModel.target_time <= now).where(PostModel.type == send_type)
         result = session.execute(q).scalars().all()
         return result
 

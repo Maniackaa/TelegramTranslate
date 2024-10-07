@@ -70,6 +70,7 @@ class PostModel(Base):
     target_time: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     posted_time: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     translates: Mapped[list['Translate']] = relationship(back_populates='post', lazy='select')
+    type: Mapped[str] = mapped_column(String(10), default='group')  # group/bot
     is_active: Mapped[int] = mapped_column(Integer(), default=0)
 
     def validate_message(self, bot):
@@ -89,9 +90,13 @@ class PostModel(Base):
             logger.debug(f'Ищем перевод поста {self.id} lang {lang_code}')
             q = select(Translate).where(Translate.post_id == self.id, Translate.lang_code == lang_code)
             result = _session.execute(q).scalar_one_or_none()
+            logger.debug(f'перевод поста: {result}')
             return result
 
     def __str__(self):
+        return f'{self.__class__.__name__}({self.id})'
+
+    def __repr__(self):
         return f'{self.__class__.__name__}({self.id})'
 
 
@@ -114,6 +119,16 @@ class Translate(Base):
         else:
             media_group = MediaGroupBuilder()
         for photo in self.post.photos:
+            media_group.add_photo(media=photo)
+        return media_group.build()
+
+    def get_media_group_for_taxi(self, taxi_photo_ids: list):
+        text_without_info = '\n'.join(self.html.split('\n')[:-1])
+        if len(text_without_info) < 1000:
+            media_group = MediaGroupBuilder(caption=text_without_info)
+        else:
+            media_group = MediaGroupBuilder()
+        for photo in taxi_photo_ids:
             media_group.add_photo(media=photo)
         return media_group.build()
 

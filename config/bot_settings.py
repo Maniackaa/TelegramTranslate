@@ -12,6 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 class Settings(BaseSettings):
     BOT_TOKEN: str  # Токен для доступа к телеграм-боту
+    TAXIBOT_TOKEN: str
     API_ID: str
     API_HASH: str
     ADMIN_IDS: list  # Список id администраторов бота
@@ -22,6 +23,11 @@ class Settings(BaseSettings):
     CHANNEL_CODES: dict
     BOT_ID: int
     GROUP_TRANSLATE: int
+    DB_USER: str
+    DB_PASSWORD: str
+    DB_NAME: str
+    DB_HOST: str
+    DB_PORT: int
 
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env")
 

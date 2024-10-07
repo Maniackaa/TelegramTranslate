@@ -54,8 +54,22 @@ async def save_post(callback: CallbackQuery, button: Button, dialog_manager: Dia
     photo_ids = [x[0] for x in photos]
     post = get_or_create_post(data['index'])
     post.set('photos', photo_ids)
+    post.set('type', 'group')
     post.set('is_active', 1)
-    await callback.answer('Рассылка Включена')
+    await callback.answer('Рассылка в группы Включена')
+
+
+async def save_post_bot(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    logger.debug(f'Нажата кнопка save_post_bot')
+    data = dialog_manager.dialog_data
+    logger.debug(data)
+    photos = data.get('photos', [])
+    photo_ids = [x[0] for x in photos]
+    post = get_or_create_post(data['index'])
+    post.set('photos', photo_ids)
+    post.set('type', 'bot')
+    post.set('is_active', 1)
+    await callback.answer('Рассылка в бота Включена')
 
 
 async def stop_post(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -63,6 +77,7 @@ async def stop_post(callback: CallbackQuery, button: Button, dialog_manager: Dia
     data = dialog_manager.dialog_data
     logger.debug(data)
     post = get_or_create_post(data['index'])
+    post.set('type', '')
     post.set('is_active', 0)
     await callback.answer('Рассылка Отключена')
 
